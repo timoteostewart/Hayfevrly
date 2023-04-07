@@ -3,6 +3,7 @@ package Hayfevrly.Model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +37,9 @@ public class Report {
         stationName.put("aoa", "Allergy Partners of Austin");
         stationName.put("kvue", "KVUE (ABC) News and Weather");
 
-        LocalDateTime when_generated = Time.getNowInCentralTimeLdt();
+        LocalDateTime when_generated_ldt = Time.getNowInCentralTimeLdt();
+        long when_generated_epochseconds = when_generated_ldt.toEpochSecond(ZoneOffset.UTC);
+
         String reportTitle = "Pollen Counts";
         reportToUpload.append(encloseWith(reportTitle, "<div class=\"report-title\">"));
 
@@ -123,16 +126,16 @@ public class Report {
 //        reportToUpload.append("</div>");
         String reportToUploadString = reportToUpload.toString();
 //        System.out.println(reportToUploadString);
-        Database.storeReport(when_generated, reportToUploadString);
+        Database.storeReport(when_generated_ldt, reportToUploadString);
 
-        uploadFullReportToS3(Time.ldtToSqlDatetime(when_generated), reportToUploadString);
+        uploadFullReportToS3(Time.ldtToSqlDatetime(when_generated_ldt), when_generated_epochseconds, reportToUploadString);
 
         // display a courtesy copy of the report
 //        System.out.println(reportToUploadString);
 
     }
 
-    public static void uploadFullReportToS3(String when_generated, String reportToUpload) {
+    public static void uploadFullReportToS3(String when_generated_ldt, long when_generated_epochseconds, String reportToUpload) {
 
         // produce full report
 
@@ -164,14 +167,15 @@ public class Report {
 
 <p><a href="https://www.hayfevr.ly">hayfevr.ly</a></p>
 <br />
-<div class="html-generation-time">This page was generated at <!-- html generation statement goes here --></div>
+<div class="html-generation-time" data-html-generation-time-in-epoch-seconds="<!-- epoch seconds generation statement goes here -->">This page was last updated at <!-- html generation statement goes here --> ATX time.</div>
 </main>
 </body>
 </html>
 
                 """;
         indexHtmlTemplate = indexHtmlTemplate.replace("<!-- pollen report goes here -->", reportToUpload);
-        indexHtmlTemplate = indexHtmlTemplate.replace("<!-- html generation statement goes here -->", when_generated);
+        indexHtmlTemplate = indexHtmlTemplate.replace("<!-- html generation statement goes here -->", when_generated_ldt);
+        indexHtmlTemplate = indexHtmlTemplate.replace("<!-- epoch seconds generation statement goes here -->", "" + when_generated_epochseconds);
 
         // upload to S3
 //        AWS.uploadFileToBucket("", "", "hayfevr.ly", "index.html", "");

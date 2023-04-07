@@ -27,6 +27,8 @@ public class Main {
         /*
         Process command line arguments
          */
+//                System.setProperty("webdriver.http.factory", "jdk-http-client");
+
         String configFileString = null;
         String specificTask = null;
 //        String forceReadingsString = null;
@@ -135,10 +137,15 @@ public class Main {
 
                     List<String> arguments = new ArrayList<>();
                     arguments.add("--log-level=3");
-                    arguments.add("--headless");
+//                    arguments.add("--headless");
+                    arguments.add("--headless=new");
                     arguments.add("--window-size=1600,1600");
                     arguments.add("--start-maximized");
+                    arguments.add("--remote-allow-origins=*");
                     arguments.add("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36");
+
+
+
 
                     chromeOptions.addArguments(arguments);
 

@@ -60,7 +60,13 @@ public class Scraping {
         // check for availability of today's readings
         String dateShownString = driver.findElements(By.xpath("//div[@class='pollenCounts']//p")).get(1).getText();
         Database.logEvent("getAacgReadings(): dateShownString: " + dateShownString);
-        int yearShown = Integer.parseInt(dateShownString.substring(dateShownString.length() - 4));
+        int yearShown = 0;
+        try {
+            yearShown = Integer.parseInt(dateShownString.substring(dateShownString.length() - 4));
+        } catch (java.lang.NumberFormatException exc) {
+            return new ScrapeResults(new ArrayList<>(), ScrapeResultMessage.URL_FAILED_TO_LOAD);
+        }
+
         Pattern pattern = Pattern.compile("\\d+");
         Matcher matcher = pattern.matcher(dateShownString.substring(0, dateShownString.length() - 4));
         String dayShown = "";
@@ -847,16 +853,17 @@ public class Scraping {
     }
 
     public enum ScrapeResultMessage {
-        SUCCESSFUL_SCRAPE,
-        NO_DATA_FOR_TODAY_RIGHT_NOW,
-        ERROR_UNSPECIFIED,
         ERROR_BAD_OR_UNKNOWN_DATA_SOURCE_ID,
-        READING_ALREADY_EXISTS_FOR_TODAY,
-        URL_FAILED_TO_LOAD,
-        URL_FAILED_TO_LOAD_WITHIN_CONFIGURED_PAGE_DELAY,
-        LIST_OF_WEB_ELEMENTS_IS_EMPTY,
+        ERROR_UNSPECIFIED,
         FAILED_TO_COMPOSE_MAGICK_INVOCATION,
-        TESSERACT_EXCEPTION
+        LIST_OF_WEB_ELEMENTS_IS_EMPTY,
+        NO_DATA_FOR_TODAY_RIGHT_NOW,
+        READING_ALREADY_EXISTS_FOR_TODAY,
+        SUCCESSFUL_SCRAPE,
+        TESSERACT_EXCEPTION,
+        UNREADABLE_DATE_ON_WEB_PAGE,
+        URL_FAILED_TO_LOAD,
+        URL_FAILED_TO_LOAD_WITHIN_CONFIGURED_PAGE_DELAY
     }
 
     public record ScrapeResults(List<Reading> results, ScrapeResultMessage message) {
